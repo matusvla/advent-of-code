@@ -1,8 +1,6 @@
 package tobogan
 
-const (
-	tree = '#'
-)
+const tree = '#'
 
 func CheckTree(line string, lineNo int, step float32) bool {
 	gotoPlace := step * float32(lineNo)
