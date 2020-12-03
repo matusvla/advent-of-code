@@ -5,14 +5,20 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 var lineRe = regexp.MustCompile(`^(\d+)-(\d+) (.): (.*)$`)
 
-func OldPolicy(from, to int, key, value string) bool {
+func OldPolicyRegExp(from, to int, key, value string) bool {
 	return regexp.MustCompile(
 		fmt.Sprintf(`^[^%v]*([%v][^%v]*){%v,%v}$`, key, key, key, from, to),
 	).MatchString(value)
+}
+
+func OldPolicy(from, to int, key, value string) bool {
+	contains := strings.Count(value, key)
+	return contains >= from && contains <= to
 }
 
 func NewPolicy(pos1, pos2 int, key, value string) bool {

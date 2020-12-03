@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParse(t *testing.T) {
@@ -20,7 +21,7 @@ func TestParse(t *testing.T) {
 			name: "success",
 			args: args{
 				passLine: "1-3 a: abcde",
-				policy:   OldPolicy,
+				policy:   OldPolicyRegExp,
 			},
 			want:    true,
 			wantErr: false,
@@ -29,7 +30,7 @@ func TestParse(t *testing.T) {
 			name: "fail",
 			args: args{
 				passLine: "1-3 a: bcde",
-				policy:   OldPolicy,
+				policy:   OldPolicyRegExp,
 			},
 			want:    false,
 			wantErr: false,
@@ -38,7 +39,7 @@ func TestParse(t *testing.T) {
 			name: "error",
 			args: args{
 				passLine: "1- a: bcde",
-				policy:   OldPolicy,
+				policy:   OldPolicyRegExp,
 			},
 			want:    false,
 			wantErr: true,
@@ -95,5 +96,23 @@ func TestParse(t *testing.T) {
 			assert.Equal(t, tt.wantErr, err != nil, "error")
 			assert.Equal(t, tt.want, got, "result")
 		})
+	}
+}
+
+func BenchmarkNewPolicy(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		NewPolicy(1, 3, "a", "asdffdsa")
+	}
+}
+
+func BenchmarkOldPolicyRegExp(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		OldPolicyRegExp(1, 3, "a", "asdffdsa")
+	}
+}
+
+func BenchmarkOldPolicy(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		OldPolicy(1, 3, "a", "asdffdsa")
 	}
 }
