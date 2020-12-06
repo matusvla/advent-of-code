@@ -1,7 +1,7 @@
 package main
 
 import (
-	"advent-of-code-2020/4/passport"
+	"advent-of-code-2020/6/answers"
 	"advent-of-code-2020/fileprocessing"
 	"fmt"
 	"log"
@@ -9,16 +9,12 @@ import (
 
 func main() {
 	fp := fileprocessing.New(
-		func(s string) int {
-			if passport.Process(s) && passport.ProcessAndValidate(s) {
-				return 1
-			}
-			return 0
-		},
+		//answers.Union,
+		answers.Intersection,
 		fileprocessing.ScanBlocks,
 	)
 
-	res, err := fp.Process("./testdata/input.txt")
+	res, err := fp.Process("./6/testdata/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
