@@ -6,16 +6,17 @@ import (
 	"log"
 	"strconv"
 	"strings"
-	"time"
+
+	"advent-of-code-2020/13/crt"
 )
 
 func main() {
-	f, err := ioutil.ReadFile("./testdata/input.txt")
+	f, err := ioutil.ReadFile("./13/testdata/input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 	input := string(f)
-	data := strings.Split(input,"\n")
+	data := strings.Split(input, "\n")
 	time, err := strconv.Atoi(data[0])
 	if err != nil {
 		log.Fatal(err)
@@ -31,8 +32,8 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if time % id == 0 || id - time % id < min {
-			min = id - time % id
+		if time%id == 0 || id-time%id < min {
+			min = id - time%id
 			bestLine = id
 		}
 	}
@@ -46,33 +47,10 @@ func main() {
 		if err != nil {
 			continue
 		}
-		a = append(a, i) // todo modulo n
+		a = append(a, id-(i-i/id*id))
 		n = append(n, id)
 	}
 
-	//for i := 0; i < len(n) - 1; i++ {
-	//	_, bezoutCoefa, bezoutCoefb := extendedEucleid(n[i],n[i+1])
-	//}
-
-	fmt.Println(extendedEucleid(7,13))
-}
-
-func extendedEucleid(a,b int) (int, int, int) {
-	r_i := a
-	r_ip1 := b
-	s_i := 1
-	s_ip1 := 0
-	t_i := 0
-	t_ip1 := 1
-	for r_ip1 != 1 {
-		q_ip1 := r_ip1 / r_i
-		fmt.Println(r_i, s_i, t_i, q_ip1)
-		pom := r_ip1
-		r_ip1 = r_i - q_ip1 * r_ip1
-		r_i = pom
-		s_ip1, s_i = s_i - q_ip1 * s_ip1,s_ip1
-		t_ip1, t_i = t_i - q_ip1 * t_ip1,t_ip1
-		time.Sleep(time.Second)
-	}
-	return r_i, s_i, t_i
+	val, err := crt.ChineseRemainderTheorem(a, n)
+	fmt.Println(val, err)
 }
