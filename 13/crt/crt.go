@@ -29,10 +29,8 @@ func ChineseRemainderTheorem(a, n []int) (*big.Int, error) {
 }
 
 func ChineseRemainderTheorem2Equations(a1, a2, n1, n2 *big.Int) (*big.Int, error) {
-	gcd, m1f, m2f := ExtendedEucleides(n1.Int64(), n2.Int64())
-	m1 := big.NewInt(m1f)
-	m2 := big.NewInt(m2f)
-	if gcd > 1 {
+	gcd, m1, m2 := ExtendedEucleides(n1, n2)
+	if gcd.Cmp(big.NewInt(1)) == 1 {
 		return nil, fmt.Errorf("Numbers %v, %v are not coprime.", n1, n2)
 	}
 	// x := a1*m2*n2 + a2*m1f*n1
