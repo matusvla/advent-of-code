@@ -2,14 +2,14 @@ package monkey
 
 import (
 	"fmt"
-	"math/big"
+	"sort"
 )
 
 type Monkey struct {
 	id              int
-	items           map[string]int // string is big int
-	operation       func(*big.Int) *big.Int
-	test            func(int2 *big.Int) bool
+	items           map[int]int
+	operation       func(int) int
+	testDivisor     int
 	successTestDest *Monkey
 	failTestDest    *Monkey
 
@@ -18,15 +18,15 @@ type Monkey struct {
 
 type Monkeys []*Monkey
 
-func NewMonkey(items []int, operation func(*big.Int) *big.Int, test func(*big.Int) bool) *Monkey {
-	itemMap := make(map[string]int)
+func NewMonkey(items []int, operation func(int) int, testDivisor int) *Monkey {
+	itemMap := make(map[int]int)
 	for _, it := range items {
-		itemMap[fmt.Sprint(it)]++
+		itemMap[it] = 1
 	}
 	return &Monkey{
-		items:     itemMap,
-		operation: operation,
-		test:      test,
+		items:       itemMap,
+		operation:   operation,
+		testDivisor: testDivisor,
 	}
 }
 
@@ -46,32 +46,24 @@ func (m *Monkey) Link(a, b *Monkey) {
 }
 
 func (ms Monkeys) ThrowAll() {
+	commonDivisor := 1
 	for _, m := range ms {
-		//ms.Print()
+		commonDivisor *= m.testDivisor
+	}
+
+	for _, m := range ms {
 		for item, count := range m.items {
 			m.monkeyBusinessScore += count
-			i := big.Int{}
-			i.SetString(item, 10)
-			//fmt.Printf("Monkey %v observes %v\n", m.id, item)
-			worryLevel := m.operation(&i)
-			//fmt.Printf("Monkey %v worries about %v\n", m.id, worryLevel.String())
-			//worryLevel = new(big.Int).Div(worryLevel, big.NewInt(3)) //only for part 1
-			//fmt.Printf("Monkey %v stopped worying about %v\n", m.id, worryLevel.String())
-			if worryLevel.Cmp(big.NewInt(0)) == 0 {
-				panic("worry level is zero")
-			}
-			if m.test(worryLevel) {
-				//fmt.Printf("Monkey %v really throws %v to %v\n", m.id, worryLevel.String(), m.successTestDest.id)
-				m.successTestDest.items[worryLevel.String()] += count
+			worryLevel := m.operation(item)
+			// only for part 1
+			//worryLevel = worryLevel / 3
+			if rem := worryLevel % m.testDivisor; rem == 0 {
+				m.successTestDest.items[worryLevel%commonDivisor] += count
 			} else {
-				//fmt.Printf("Monkey %v really throws %v to %v\n", m.id, worryLevel.String(), m.failTestDest.id)
-				m.failTestDest.items[worryLevel.String()] += count
+				m.failTestDest.items[worryLevel%commonDivisor] += count
 			}
 			delete(m.items, item)
-			//ms.Print()
 		}
-		//ms.Print()
-		//fmt.Println()
 	}
 }
 
@@ -83,4 +75,14 @@ func (ms *Monkeys) Print() {
 	for _, m := range *ms {
 		fmt.Printf("%v : %v : %v : %v\n", m.monkeyBusinessScore, m.items, m.successTestDest.id, m.failTestDest.id)
 	}
+}
+
+func (ms *Monkeys) MonkeyBusiness() int {
+	// sort monkeys monkeyBusinessScore
+	var scores []int
+	for _, m := range *ms {
+		scores = append(scores, m.monkeyBusinessScore)
+	}
+	sort.Ints(scores)
+	return scores[len(scores)-1] * scores[len(scores)-2]
 }

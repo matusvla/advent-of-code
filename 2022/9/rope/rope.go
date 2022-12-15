@@ -1,16 +1,24 @@
-package knots
+package rope
 
-type Knots struct {
+import "fmt"
+
+type Rope struct {
 	visited      map[int]bool // int = x + y*100000
 	headPosition int
 	tail         []int
 }
 
-func New(length) *Knots {
-	return &Knots{
+const startPos = 20000
+
+func New(length int) *Rope {
+	var tail []int
+	for i := 0; i < length; i++ {
+		tail = append(tail, coordinates(startPos, startPos))
+	}
+	return &Rope{
 		visited:      make(map[int]bool),
-		headPosition: coordinates(50000, 50000),
-		tail:         coordinates(50000, 50000),
+		headPosition: coordinates(startPos, startPos),
+		tail:         tail,
 	}
 }
 
@@ -29,42 +37,102 @@ const (
 	left  = "L"
 )
 
-func (k *Knots) Move(direction string, steps int) {
-	xHead, yHead := parseCoordinates(k.headPosition)
-	xTail, yTail := parseCoordinates(k.tailPosition)
+func (k *Rope) Move(direction string, steps int) {
 	for i := 0; i < steps; i++ {
+		xHead, yHead := parseCoordinates(k.headPosition)
 		switch direction {
 		case up:
 			yHead++
-			if yHead-yTail > 1 {
-				xTail = xHead
-				yTail++
-			}
 		case right:
 			xHead++
-			if xHead-xTail > 1 {
-				xTail++
-				yTail = yHead
-			}
 		case down:
 			yHead--
-			if yTail-yHead > 1 {
-				xTail = xHead
-				yTail--
-			}
 		case left:
 			xHead--
-			if xTail-xHead > 1 {
-				xTail--
-				yTail = yHead
-			}
 		}
-		k.visited[coordinates(xTail, yTail)] = true
+		k.headPosition = coordinates(xHead, yHead)
+		movedPrevPos := k.headPosition
+		for j := 0; j < len(k.tail); j++ {
+			tailPosition := k.tail[j]
+			tailPosition = followPreviousKnot(movedPrevPos, tailPosition)
+			k.tail[j] = tailPosition
+			if j == len(k.tail)-1 {
+				k.visited[tailPosition] = true
+			}
+			movedPrevPos = tailPosition
+			//k.Print()
+			//fmt.Printf("Moved %s %d/%d\n", direction, i+1, steps)
+		}
 	}
-	k.headPosition = coordinates(xHead, yHead)
-	k.tailPosition = coordinates(xTail, yTail)
 }
 
-func (k *Knots) CountVisited() int {
+func abs(n int) int {
+	if n < 0 {
+		return -n
+	}
+	return n
+}
+
+func followPreviousKnot(headLocation, tailLocation int) int {
+	xHead, yHead := parseCoordinates(headLocation)
+	xTail, yTail := parseCoordinates(tailLocation)
+	if abs(xHead-xTail) > 1 && abs(yHead-yTail) > 1 {
+		if xHead > xTail {
+			xTail++
+		} else {
+			xTail--
+		}
+		if yHead > yTail {
+			yTail++
+		} else {
+			yTail--
+		}
+	} else if abs(xHead-xTail) > 1 {
+		if xHead > xTail {
+			xTail++
+			yTail = yHead
+		} else {
+			xTail--
+			yTail = yHead
+		}
+	} else if abs(yHead-yTail) > 1 {
+		if yHead > yTail {
+			yTail++
+			xTail = xHead
+		} else {
+			yTail--
+			xTail = xHead
+		}
+	}
+	return coordinates(xTail, yTail)
+}
+
+func (k *Rope) CountVisited() int {
 	return len(k.visited)
+}
+
+func (k *Rope) Print() {
+	xHead, yHead := parseCoordinates(k.headPosition)
+	for i := startPos*2 - 1; i >= 0; i-- {
+	Outer:
+		for j := 0; j < startPos*2; j++ {
+			if i == yHead && j == xHead {
+				fmt.Print("H")
+				continue
+			}
+			for tp, tailPosition := range k.tail {
+				xTail, yTail := parseCoordinates(tailPosition)
+				if i == yTail && j == xTail {
+					fmt.Print(tp + 1)
+					continue Outer
+				}
+			}
+			if k.visited[coordinates(j, i)] {
+				fmt.Print("#")
+				continue
+			}
+			fmt.Print(".")
+		}
+		fmt.Println()
+	}
 }
